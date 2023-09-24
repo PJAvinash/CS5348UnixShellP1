@@ -128,13 +128,11 @@ void executecmd(char* cmd){
     int argc = 0;
     char** argv = strsplit(cmd," ",&argc);
     if (strcmp(argv[0], "exit") == 0) {
-         printf("exit\n");
         if(argc > 1) {
             throwError();
         }
         exit(0);
     } else if (strcmp(argv[0], "cd") == 0) {
-         printf("cd\n");
         if(argc  == 1 || argc >2) {
             throwError();
         }
@@ -142,26 +140,25 @@ void executecmd(char* cmd){
             throwError();
         }
     } else if (strcmp(argv[0], "path") == 0) {
-        printf("path\n");
         if(argc == 1){
-            //printf("path-argc1\n");
             strcpy(path,"");
         }else{
-            //printf("path-argc != 1\n");
             char* concat = strconcat(1,argc-1,argv,' ');
             strcpy(path,concat);
             free(concat);
         }
     }else {
         int status;
+        int execreturn = 0;
         char* programpath = searchfilepath(argv[0]);
         pid_t pid = fork();
         if(pid < 0){
             throwError();
         }else if(pid == 0){
-            if(programpath != NULL){
-                printf("%s",programpath);
-                execv(programpath,argv);
+            execreturn = execv(programpath,argv);
+            if(execreturn == -1){
+                printf("%d",execreturn);
+                throwError();
             }
         }else{
             waitpid(pid, &status, 0);
@@ -173,9 +170,7 @@ void executecmd(char* cmd){
 
 void processcmd(const char* cmd){
     int num_cmds = 0;
-    //printf("processcmd-%s\n",cmd);
     char** cmds = strsplit(cmd,"&",&num_cmds);
-    //printf("num_cmds : %d\n",num_cmds);
     for(int i = 0; i<num_cmds; i++){
         executecmd(cmds[i]);
     }
@@ -188,22 +183,25 @@ int runBatchMode(char* filename){
     if( fp == NULL ){
         throwError();
     }
-    char *cmd = NULL;
-    size_t len = 100;
-    cmd = (char *)malloc(len*sizeof(char));
-    while(getline(&cmd, &len, stdin) != -1){
+    char *cmd;
+    size_t buffersize = 1024;
+    ssize_t bytesRead;
+    cmd = (char *)malloc(buffersize*sizeof(char));
+    while ((bytesRead = getline(&cmd, &buffersize, stdin)) != -1) {
+        if (bytesRead > 0 && cmd[bytesRead - 1] == '\n') {
+            cmd[bytesRead - 1] = '\0';
+        }
+        trim(cmd);
         processcmd(cmd);
     }
-    printf("dash> ");
     free(cmd);
     fclose(fp);
     return 0;
 }
 
-
 int runInteractiveMode() {
     char *cmd; 
-    size_t buffersize = 256;
+    size_t buffersize = 1024;
     ssize_t bytesRead;
     cmd = (char*)malloc(buffersize*sizeof(char));
     printf("dash> ");
