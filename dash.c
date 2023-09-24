@@ -76,7 +76,7 @@ void freetokenlistmemory(char** tokenlist,int numtokens){
 
 char* searchfilepath(const char* name){
     int numdirs = 0;
-    char** dirlist = strsplit(path,":",&numdirs);
+    char** dirlist = strsplit(path," ",&numdirs);
     for(int i = 0;i<numdirs;i++){
         char* filepath = (char*)malloc((strlen(dirlist[i])+2+strlen(name))*sizeof(char));
         strcat(filepath,dirlist[i]);
