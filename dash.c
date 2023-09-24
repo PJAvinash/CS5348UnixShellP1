@@ -50,18 +50,16 @@ void trim(char* inputstr){
     inputstr[1+(back-front)] = '\0';
 }
 
-char** strsplit(const char *input,const char delimiter, int* num_tokens) {
-    int numtokens = strsplitsize(input,delimiter);
+char** strsplit(const char *input,const char* delimiter, int* num_tokens) {
+    int numtokens = strsplitsize(input,delimiter[0]);
     char** splitarray = (char**) malloc((numtokens+1) * sizeof(char*));
     char copy[strlen(input) + 1];
     strcpy(copy, input);
-    char *token = strtok(copy,&delimiter);
-    printf("delimiter.. %c\n",delimiter);
+    char *token = strtok(copy,delimiter);
     int i = 0;
     while (token != NULL) {
-        printf("in while :%s\n",token);
         splitarray[i] = strdup(token);
-        token = strtok(NULL,&delimiter);
+        token = strtok(NULL,delimiter);
         i++;
     }
     splitarray[i] = NULL;
@@ -78,7 +76,7 @@ void freetokenlistmemory(char** tokenlist,int numtokens){
 
 char* searchfilepath(const char* name){
     int numdirs = 0;
-    char** dirlist = strsplit(path,':',&numdirs);
+    char** dirlist = strsplit(path,":",&numdirs);
     for(int i = 0;i<numdirs;i++){
         char* filepath = (char*)malloc((strlen(dirlist[i])+2+strlen(name))*sizeof(char));
         strcat(filepath,dirlist[i]);
@@ -97,14 +95,12 @@ char* searchfilepath(const char* name){
 
 char* strconcat(int start, int end, char **argv, const char delimiter){
     int outputlen = 0;
-    printf("start : %d, end: %d\n",start,end);
     for(int i = start; i<= end & argv[i] != NULL; i++){
         printf("%d, %s \n",i,argv[i]);
         outputlen += (strlen(argv[i])+1);
     }
     int a = (start <= end);
     outputlen -= a;
-    printf("output length: %d",outputlen);
     char* output = (char*)malloc(outputlen * sizeof(char));
     int k = 0;
     for(int i = start;i<end;i++){
@@ -124,16 +120,13 @@ char* strconcat(int start, int end, char **argv, const char delimiter){
         }
     }
     output[k]= '\0';
-    printf("%s",output);
     return output;
 }
 
 void executecmd(char* cmd){
     trim(cmd);
     int argc = 0;
-    char** argv = strsplit(cmd,' ',&argc);
-    // printf("first arg:%s\n",argv[0]);
-    printf("argc %d\n",argc);
+    char** argv = strsplit(cmd," ",&argc);
     if (strcmp(argv[0], "exit") == 0) {
          printf("exit\n");
         if(argc > 1) {
@@ -151,38 +144,38 @@ void executecmd(char* cmd){
     } else if (strcmp(argv[0], "path") == 0) {
         printf("path\n");
         if(argc == 1){
-            printf("path-argc1\n");
-            //strcpy(path,"");
+            //printf("path-argc1\n");
+            strcpy(path,"");
         }else{
-            printf("path-argc != 1\n");
+            //printf("path-argc != 1\n");
             char* concat = strconcat(1,argc-1,argv,' ');
             strcpy(path,concat);
             free(concat);
         }
-    } else {
-        // int status;
-        // char* programpath = searchfilepath(argv[0]);
-        // pid_t pid = fork();
-        // if(pid < 0){
-        //     throwError();
-        // }else if(pid == 0){
-        //     if(programpath != NULL){
-        //         printf("%s",programpath);
-        //         execv(programpath,argv);
-        //     }
-        // }else{
-        //     waitpid(pid, &status, 0);
-        // }
-        // free(programpath);
+    }else {
+        int status;
+        char* programpath = searchfilepath(argv[0]);
+        pid_t pid = fork();
+        if(pid < 0){
+            throwError();
+        }else if(pid == 0){
+            if(programpath != NULL){
+                printf("%s",programpath);
+                execv(programpath,argv);
+            }
+        }else{
+            waitpid(pid, &status, 0);
+        }
+        free(programpath);
     }
     freetokenlistmemory(argv,argc);
 }
 
 void processcmd(const char* cmd){
     int num_cmds = 0;
-    printf("processcmd-%s\n",cmd);
-    char** cmds = strsplit(cmd,'&',&num_cmds);
-    printf("num_cmds : %d\n",num_cmds);
+    //printf("processcmd-%s\n",cmd);
+    char** cmds = strsplit(cmd,"&",&num_cmds);
+    //printf("num_cmds : %d\n",num_cmds);
     for(int i = 0; i<num_cmds; i++){
         executecmd(cmds[i]);
     }
@@ -218,7 +211,6 @@ int runInteractiveMode() {
         if (bytesRead > 0 && cmd[bytesRead - 1] == '\n') {
             cmd[bytesRead - 1] = '\0';
         }
-        printf("%s",cmd);
         trim(cmd);
         processcmd(cmd);
         printf("dash> ");
