@@ -116,17 +116,42 @@ char *searchfilepath(const char *name)
     return NULL;
 }
 
-void validateredirectioncmd(int argc, char **argv)
+int countChar(const char *cmd, const char target)
 {
+    int cmdlen = strlen(cmd);
+    int count = 0;
     int i;
-    for (i = 0; i < argc; i++)
+    for (i = 0; i < cmdlen; i++)
     {
-        if (strcmp(argv[i], ">") == 0 && ((argc - 2) != i))
+        if (cmd[i] == target)
         {
-            throwError();
+            count++;
         }
     }
+    return count;
 }
+
+void validateredirectioncmd(char *cmd)
+{
+    int cmdlen = strlen(cmd);
+    int count = countChar(cmd, '>');
+    if (count > 1 || (count == 1 && (cmd[cmdlen - 1] == '>' || cmd[0] == '>')))
+    {
+        throwError();
+    }
+}
+
+// void validateredirectioncmd(int argc, char **argv)
+// {
+//     int i;
+//     for (i = 0; i < argc; i++)
+//     {
+//         if (strcmp(argv[i], ">") == 0 && ((argc - 2) != i))
+//         {
+//             throwError();
+//         }
+//     }
+// }
 
 void truncateargs(int *argc, char **argv, int tailsize)
 {
@@ -241,11 +266,14 @@ void executecmd(char *cmd)
         }
         else if (pid == 0)
         {
-            validateredirectioncmd(argc, argv);
-            if (argc > 2 && strcmp(argv[argc - 2], ">") == 0)
+            validateredirectioncmd(cmd);
+            if (countChar(cmd, '>'))
             {
-                outputredirection(argv[argc - 1]);
-                truncateargs(&argc, argv, 2);
+                int numargs = 0;
+                char **redirectionsplit = strsplit(cmd, ">", &numargs);
+                outputredirection(redirectionsplit[1]);
+                truncateargs(&argc, argv, argc);
+                argv = strsplit(redirectionsplit[0], " ", &argc);
             }
             execreturn = execv(programpath, argv);
             if (execreturn == -1)
@@ -285,6 +313,7 @@ int runBatchMode(char *filename)
     size_t buffersize = 1024;
     ssize_t bytesRead;
     cmd = (char *)malloc(buffersize * sizeof(char));
+    bool cmdexec = false;
     while ((bytesRead = getline(&cmd, &buffersize, fp)) != -1)
     {
         if (bytesRead > 0 && cmd[bytesRead - 1] == '\n')
@@ -292,7 +321,16 @@ int runBatchMode(char *filename)
             cmd[bytesRead - 1] = '\0';
         }
         trim(cmd);
+        if (cmd[0] == '\0')
+        {
+            throwError();
+        }
         processcmd(cmd);
+        cmdexec = true;
+    }
+    if (!cmdexec)
+    {
+        throwError();
     }
     free(cmd);
     fclose(fp);
