@@ -25,7 +25,8 @@ int strsplitsize(const char *input, const char delimiter)
     }
     int output = 1;
     int len = strlen(input);
-    for (int i = 1; i < len; i++)
+    int i;
+    for (i = 1; i < len; i++)
     {
         if (input[i] == delimiter && input[i - 1] != delimiter)
         {
@@ -51,7 +52,8 @@ void trim(char *inputstr)
         {
             back--;
         }
-        for (int i = front; i <= back; i++)
+        int i;
+        for (i = front; i <= back; i++)
         {
             inputstr[i - front] = inputstr[i];
         }
@@ -81,7 +83,8 @@ char **strsplit(const char *input, const char *delimiter, int *num_tokens)
 
 void freetokenlistmemory(char **tokenlist, int numtokens)
 {
-    for (int i = 0; i < numtokens; i++)
+    int i;
+    for (i = 0; i < numtokens; i++)
     {
         free(tokenlist[i]);
     }
@@ -92,7 +95,8 @@ char *searchfilepath(const char *name)
 {
     int numdirs = 0;
     char **dirlist = strsplit(path, " ", &numdirs);
-    for (int i = 0; i < numdirs; i++)
+    int i;
+    for (i = 0; i < numdirs; i++)
     {
         char *filepath = (char *)malloc((strlen(dirlist[i]) + 2 + strlen(name)) * sizeof(char));
         strcat(filepath, dirlist[i]);
@@ -114,7 +118,8 @@ char *searchfilepath(const char *name)
 
 void validateredirectioncmd(int argc, char **argv)
 {
-    for (int i = 0; i < argc; i++)
+    int i;
+    for (i = 0; i < argc; i++)
     {
         if (strcmp(argv[i], ">") == 0 && ((argc - 2) != i))
         {
@@ -152,7 +157,8 @@ void outputredirection(const char *filepath)
 char *strconcat(int start, int end, char **argv, const char delimiter)
 {
     int outputlen = 0;
-    for (int i = start; i <= end & argv[i] != NULL; i++)
+    int i;
+    for (i = start; i <= end & argv[i] != NULL; i++)
     {
         printf("%d, %s \n", i, argv[i]);
         outputlen += (strlen(argv[i]) + 1);
@@ -161,7 +167,7 @@ char *strconcat(int start, int end, char **argv, const char delimiter)
     outputlen -= a;
     char *output = (char *)malloc(outputlen * sizeof(char));
     int k = 0;
-    for (int i = start; i < end; i++)
+    for (i = start; i < end; i++)
     {
         int ilen = strlen(argv[i]);
         for (int j = 0; j < ilen; j++)
@@ -175,7 +181,8 @@ char *strconcat(int start, int end, char **argv, const char delimiter)
     if (start <= end)
     {
         int ilen = strlen(argv[end]);
-        for (int j = 0; j < ilen; j++)
+        int j;
+        for (j = 0; j < ilen; j++)
         {
             output[k] = argv[end][j];
             k++;
@@ -260,7 +267,8 @@ void processcmd(const char *cmd)
 {
     int num_cmds = 0;
     char **cmds = strsplit(cmd, "&", &num_cmds);
-    for (int i = 0; i < num_cmds; i++)
+    int i;
+    for (i = 0; i < num_cmds; i++)
     {
         executecmd(cmds[i]);
     }
