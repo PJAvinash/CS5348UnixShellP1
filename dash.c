@@ -39,6 +39,10 @@ int strsplitsize(const char *input, const char delimiter)
 // needs testing
 void trim(char *inputstr)
 {
+    if (inputstr == NULL)
+    {
+        return;
+    }
     int length = strlen(inputstr);
     if (length > 0)
     {
@@ -94,7 +98,7 @@ void freetokenlistmemory(char **tokenlist, int numtokens)
 char *searchfilepath(const char *name)
 {
     int numdirs = 0;
-    char **dirlist = strsplit(path, " ", &numdirs);
+    char **dirlist = strsplit(path, ":", &numdirs);
     int i;
     for (i = 0; i < numdirs; i++)
     {
@@ -104,6 +108,7 @@ char *searchfilepath(const char *name)
         strcat(filepath, name);
         if (access(filepath, F_OK) == 0)
         {
+
             freetokenlistmemory(dirlist, numdirs);
             return filepath;
         }
@@ -208,6 +213,10 @@ char *strconcat(int start, int end, char **argv, const char delimiter)
 void executecmd(char *cmd)
 {
     trim(cmd);
+    if (cmd == NULL || strlen(cmd) == 0)
+    {
+        return;
+    }
     int argc = 0;
     char **argv = strsplit(cmd, " ", &argc);
     if (strcmp(argv[0], "exit") == 0)
@@ -237,9 +246,15 @@ void executecmd(char *cmd)
         }
         else
         {
-            char *concat = strconcat(1, argc - 1, argv, ' ');
-            strcpy(path, concat);
-            free(concat);
+            char pathvalue[4 + strlen(cmd)];
+            strcpy(pathvalue, cmd);
+            int i;
+            for (i = 0; i < 4; i++)
+            {
+                pathvalue[i] = ' ';
+            }
+            trim(pathvalue);
+            strcpy(path, pathvalue);
         }
     }
     else
@@ -278,16 +293,19 @@ void executecmd(char *cmd)
     freetokenlistmemory(argv, argc);
 }
 
-void processcmd(const char *cmd)
+int processcmd(const char *cmd)
 {
+    int cmdexecuted = 0;
     int num_cmds = 0;
     char **cmds = strsplit(cmd, "&", &num_cmds);
     int i;
     for (i = 0; i < num_cmds; i++)
     {
         executecmd(cmds[i]);
+        cmdexecuted = 1;
     }
     freetokenlistmemory(cmds, num_cmds);
+    return cmdexecuted;
 }
 
 int runBatchMode(char *filename)
@@ -309,12 +327,10 @@ int runBatchMode(char *filename)
             cmd[bytesRead - 1] = '\0';
         }
         trim(cmd);
-        if (cmd[0] == '\0')
+        if (processcmd(cmd) == 1)
         {
-            throwError();
+            cmdexec = true;
         }
-        processcmd(cmd);
-        cmdexec = true;
     }
     if (!cmdexec)
     {
