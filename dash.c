@@ -158,7 +158,7 @@ char *strconcat(int start, int end, char **argv, const char delimiter)
 {
     int outputlen = 0;
     int i;
-    for (i = start; i <= end & argv[i] != NULL; i++)
+    for (i = start; (i <= end) && (argv[i] != NULL); i++)
     {
         printf("%d, %s \n", i, argv[i]);
         outputlen += (strlen(argv[i]) + 1);
@@ -170,7 +170,8 @@ char *strconcat(int start, int end, char **argv, const char delimiter)
     for (i = start; i < end; i++)
     {
         int ilen = strlen(argv[i]);
-        for (int j = 0; j < ilen; j++)
+        int j;
+        for (j = 0; j < ilen; j++)
         {
             output[k] = argv[i][j];
             k++;
