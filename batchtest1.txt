@@ -5,3 +5,4 @@ cd testdir
 mkdir testdir2 & mkdir testdir3 & mkdir testdir4
 rm -r testdir2
 cd ..
+pwd /tmp > 1234test.txt & ls &

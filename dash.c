@@ -9,8 +9,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-char path[500] = "/bin";
-
+char path[1024] = "/bin";
 void throwError()
 {
     char error_message[30] = "An error has occured\n";
@@ -20,7 +19,7 @@ void throwError()
 
 int strsplitsize(const char *input, const char delimiter)
 {
-    if (strcmp(input, "") == 0)
+    if (input == NULL || strcmp(input, "") == 0)
     {
         return 0;
     }
@@ -40,22 +39,25 @@ int strsplitsize(const char *input, const char delimiter)
 void trim(char *inputstr)
 {
     int length = strlen(inputstr);
-    int front = 0;
-    int back = length - 1;
-    while (isspace(inputstr[front]))
+    if (length > 0)
     {
-        front++;
+        int front = 0;
+        int back = length - 1;
+        while (isspace(inputstr[front]))
+        {
+            front++;
+        }
+        while (back >= front && isspace(inputstr[back]))
+        {
+            back--;
+        }
+        for (int i = front; i <= back; i++)
+        {
+            inputstr[i - front] = inputstr[i];
+        }
+        // Null-terminate the new string.
+        inputstr[1 + (back - front)] = '\0';
     }
-    while (back >= front && isspace(inputstr[back]))
-    {
-        back--;
-    }
-    for (int i = front; i <= back; i++)
-    {
-        inputstr[i - front] = inputstr[i];
-    }
-    // Null-terminate the new string.
-    inputstr[1 + (back - front)] = '\0';
 }
 
 char **strsplit(const char *input, const char *delimiter, int *num_tokens)
@@ -108,6 +110,43 @@ char *searchfilepath(const char *name)
     }
     freetokenlistmemory(dirlist, numdirs);
     return NULL;
+}
+
+void validateredirectioncmd(int argc, char **argv)
+{
+    for (int i = 0; i < argc; i++)
+    {
+        if (strcmp(argv[i], ">") == 0 && ((argc - 2) != i))
+        {
+            throwError();
+        }
+    }
+}
+
+void truncateargs(int *argc, char **argv, int tailsize)
+{
+    int back = (*argc);
+    int k = tailsize;
+    while (back > -1 && k > -1)
+    {
+        free(argv[back]);
+        k--;
+        back--;
+    }
+    argv[back] = NULL;
+    (*argc) = back;
+}
+
+void outputredirection(const char *filepath)
+{
+    int fd = open(filepath, O_CREAT | O_WRONLY | O_TRUNC, 0777);
+    if (fd == -1)
+    {
+        throwError();
+    }
+    dup2(fd, fileno(stdout));
+    dup2(fd, fileno(stderr));
+    close(fd);
 }
 
 char *strconcat(int start, int end, char **argv, const char delimiter)
@@ -195,6 +234,12 @@ void executecmd(char *cmd)
         }
         else if (pid == 0)
         {
+            validateredirectioncmd(argc, argv);
+            if (argc > 2 && strcmp(argv[argc - 2], ">") == 0)
+            {
+                outputredirection(argv[argc - 1]);
+                truncateargs(&argc, argv, 2);
+            }
             execreturn = execv(programpath, argv);
             if (execreturn == -1)
             {
