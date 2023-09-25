@@ -160,7 +160,6 @@ char *strconcat(int start, int end, char **argv, const char delimiter)
     int i;
     for (i = start; (i <= end) && (argv[i] != NULL); i++)
     {
-        printf("%d, %s \n", i, argv[i]);
         outputlen += (strlen(argv[i]) + 1);
     }
     int a = (start <= end);
@@ -251,7 +250,6 @@ void executecmd(char *cmd)
             execreturn = execv(programpath, argv);
             if (execreturn == -1)
             {
-                printf("%d", execreturn);
                 throwError();
             }
         }
@@ -278,7 +276,6 @@ void processcmd(const char *cmd)
 
 int runBatchMode(char *filename)
 {
-    printf("dash> ");
     FILE *fp = fopen(filename, "r");
     if (fp == NULL)
     {
