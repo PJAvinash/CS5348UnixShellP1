@@ -141,18 +141,6 @@ void validateredirectioncmd(char *cmd)
     }
 }
 
-// void validateredirectioncmd(int argc, char **argv)
-// {
-//     int i;
-//     for (i = 0; i < argc; i++)
-//     {
-//         if (strcmp(argv[i], ">") == 0 && ((argc - 2) != i))
-//         {
-//             throwError();
-//         }
-//     }
-// }
-
 void truncateargs(int *argc, char **argv, int tailsize)
 {
     int back = (*argc);
