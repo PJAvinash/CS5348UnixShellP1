@@ -7,11 +7,28 @@
 #include <stdbool.h>
 
 char path[1024] = "/bin";
+
 void throwError()
 {
     char error_message[30] = "An error has occured\n";
     write(STDERR_FILENO, error_message, strlen(error_message));
     exit(1);
+}
+
+
+int countChar(const char *cmd, const char target)
+{
+    int cmdlen = strlen(cmd);
+    int count = 0;
+    int i;
+    for (i = 0; i < cmdlen; i++)
+    {
+        if (cmd[i] == target)
+        {
+            count++;
+        }
+    }
+    return count;
 }
 
 int strsplitsize(const char *input, const char delimiter)
@@ -99,7 +116,11 @@ void freetokenlistmemory(char **tokenlist, int numtokens)
 char *searchfilepath(const char *name)
 {
     int numdirs = 0;
-    char **dirlist = strsplit(path, ":", &numdirs);
+    char delimiter[2] = " ";
+    if(countChar(path,':') > 0){
+        delimiter[0] = ':';
+    }
+    char **dirlist = strsplit(path, delimiter , &numdirs);
     int i;
     for (i = 0; i < numdirs; i++)
     {
@@ -122,20 +143,6 @@ char *searchfilepath(const char *name)
     return NULL;
 }
 
-int countChar(const char *cmd, const char target)
-{
-    int cmdlen = strlen(cmd);
-    int count = 0;
-    int i;
-    for (i = 0; i < cmdlen; i++)
-    {
-        if (cmd[i] == target)
-        {
-            count++;
-        }
-    }
-    return count;
-}
 
 void validateredirectioncmd(char *cmd)
 {
