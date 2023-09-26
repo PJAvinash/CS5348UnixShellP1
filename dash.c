@@ -5,9 +5,6 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <stdbool.h>
-#include <sys/wait.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 
 char path[1024] = "/bin";
 void throwError()
@@ -66,6 +63,10 @@ void trim(char *inputstr)
     }
 }
 
+/*
+**returns array of tokens, updates num_tokens to number of tokens in the array. last token in the array is NULL
+**allocates memory on heap. caller is responsible for freeing the memory after usage.
+*/
 char **strsplit(const char *input, const char *delimiter, int *num_tokens)
 {
     int numtokens = strsplitsize(input, delimiter[0]);
@@ -140,9 +141,19 @@ void validateredirectioncmd(char *cmd)
 {
     int cmdlen = strlen(cmd);
     int count = countChar(cmd, '>');
-    if (count > 1 || (count == 1 && (cmd[cmdlen - 1] == '>' || cmd[0] == '>')))
+    if (count > 1 || (count == 1 && ((cmd[cmdlen - 1] == '>' || cmd[0] == '>'))))
     {
         throwError();
+    }
+    if(count == 1){
+        int numargs = 0;
+        char **redirectionsplit = strsplit(cmd, ">", &numargs);
+        trim(redirectionsplit[1]);
+        int spacecount = countChar(redirectionsplit[1], ' ');
+        if(spacecount > 0){
+            freetokenlistmemory(redirectionsplit,numargs);
+            throwError();
+        }
     }
 }
 
@@ -274,9 +285,11 @@ void executecmd(char *cmd)
             {
                 int numargs = 0;
                 char **redirectionsplit = strsplit(cmd, ">", &numargs);
+                trim(redirectionsplit[1]);
                 outputredirection(redirectionsplit[1]);
                 truncateargs(&argc, argv, argc);
                 argv = strsplit(redirectionsplit[0], " ", &argc);
+                freetokenlistmemory(redirectionsplit,numargs);
             }
             execreturn = execv(programpath, argv);
             if (execreturn == -1)
