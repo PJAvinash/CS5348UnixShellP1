@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <sys/wait.h>
 
 char path[1024] = "/bin";
 
