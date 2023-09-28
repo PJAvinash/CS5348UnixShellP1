@@ -109,9 +109,13 @@ void freetokenlistmemory(char **tokenlist, int numtokens)
     int i;
     for (i = 0; i < numtokens; i++)
     {
+        printf("7-");
         free(tokenlist[i]);
+        printf("7+");
     }
+    printf("1-");
     free(tokenlist);
+    printf("1+");
 }
 
 char *searchfilepath(const char *name)
@@ -138,7 +142,9 @@ char *searchfilepath(const char *name)
         }
         else
         {
+            printf("2-");
             free(filepath);
+            printf("2+");
         }
     }
     freetokenlistmemory(dirlist, numdirs);
@@ -173,7 +179,9 @@ void truncateargs(int *argc, char **argv, int tailsize)
     int k = tailsize;
     while (back > -1 && k > -1)
     {
+        printf("3-");
         free(argv[back]);
+        printf("3+");
         k--;
         back--;
     }
@@ -311,7 +319,9 @@ int executecmd(char *cmd)
         {
             waitpid(pid, &status, 0);
         }
+        printf("4-");
         free(programpath);
+        printf("4+");
     }
     freetokenlistmemory(argv, argc);
     return 1;
@@ -395,7 +405,9 @@ int runBatchMode(char *filename)
     {
         throwError();
     }
+    printf("5-");
     free(cmd);
+    printf("5+");
     fclose(fp);
     return 0;
 }
@@ -415,7 +427,9 @@ int runInteractiveMode()
         // addToHistory(ch, cmd);
         printf("dash> ");
     }
+    printf("6-");
     free(cmd);
+    printf("6+");
     return 0;
 }
 
