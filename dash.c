@@ -6,6 +6,7 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <sys/wait.h>
+#include "cmdhistory.c"
 
 char path[1024] = "/bin";
 
@@ -15,7 +16,6 @@ void throwError()
     write(STDERR_FILENO, error_message, strlen(error_message));
     exit(1);
 }
-
 
 int countChar(const char *cmd, const char target)
 {
@@ -118,10 +118,11 @@ char *searchfilepath(const char *name)
 {
     int numdirs = 0;
     char delimiter[2] = " ";
-    if(countChar(path,':') > 0){
+    if (countChar(path, ':') > 0)
+    {
         delimiter[0] = ':';
     }
-    char **dirlist = strsplit(path, delimiter , &numdirs);
+    char **dirlist = strsplit(path, delimiter, &numdirs);
     int i;
     for (i = 0; i < numdirs; i++)
     {
@@ -144,7 +145,6 @@ char *searchfilepath(const char *name)
     return NULL;
 }
 
-
 void validateredirectioncmd(char *cmd)
 {
     int cmdlen = strlen(cmd);
@@ -153,13 +153,15 @@ void validateredirectioncmd(char *cmd)
     {
         throwError();
     }
-    if(count == 1){
+    if (count == 1)
+    {
         int numargs = 0;
         char **redirectionsplit = strsplit(cmd, ">", &numargs);
         trim(redirectionsplit[1]);
         int spacecount = countChar(redirectionsplit[1], ' ');
-        if(spacecount > 0){
-            freetokenlistmemory(redirectionsplit,numargs);
+        if (spacecount > 0)
+        {
+            freetokenlistmemory(redirectionsplit, numargs);
             throwError();
         }
     }
@@ -229,12 +231,12 @@ char *strconcat(int start, int end, char **argv, const char delimiter)
     return output;
 }
 
-void executecmd(char *cmd)
+int executecmd(char *cmd)
 {
     trim(cmd);
     if (cmd == NULL || strlen(cmd) == 0)
     {
-        return;
+        return 0;
     }
     int argc = 0;
     char **argv = strsplit(cmd, " ", &argc);
@@ -297,7 +299,7 @@ void executecmd(char *cmd)
                 outputredirection(redirectionsplit[1]);
                 truncateargs(&argc, argv, argc);
                 argv = strsplit(redirectionsplit[0], " ", &argc);
-                freetokenlistmemory(redirectionsplit,numargs);
+                freetokenlistmemory(redirectionsplit, numargs);
             }
             execreturn = execv(programpath, argv);
             if (execreturn == -1)
@@ -312,21 +314,64 @@ void executecmd(char *cmd)
         free(programpath);
     }
     freetokenlistmemory(argv, argc);
+    return 1;
+}
+
+void validateparallelcmd(const char *cmd)
+{
+    if (countChar(cmd, '&') > 0)
+    {
+        int len = strlen(cmd);
+        int i;
+        int nonspacenonamp = 0;
+        for (i = 0; i < len; i++)
+        {
+            if (cmd[i] != ' ' && cmd[i] != '&')
+            {
+                nonspacenonamp++;
+            }
+        }
+        if (nonspacenonamp == 0)
+        {
+            throwError();
+        }
+    }
 }
 
 int processcmd(const char *cmd)
 {
     int cmdexecuted = 0;
     int num_cmds = 0;
+    validateparallelcmd(cmd);
     char **cmds = strsplit(cmd, "&", &num_cmds);
     int i;
     for (i = 0; i < num_cmds; i++)
     {
-        executecmd(cmds[i]);
-        cmdexecuted = 1;
+        if (executecmd(cmds[i]) == 1)
+        {
+            cmdexecuted = 1;
+        }
     }
     freetokenlistmemory(cmds, num_cmds);
     return cmdexecuted;
+}
+
+int readInput(char **cmd, FILE *fp)
+{
+    size_t buffersize = 1024;
+    ssize_t bytesRead;
+    static int memoryallocated = 0;
+    if (!memoryallocated)
+    {
+        (*cmd) = (char *)malloc(buffersize * sizeof(char));
+        memoryallocated = 1;
+    }
+    bytesRead = getline(cmd, &buffersize, fp);
+    if (bytesRead > 0 && (*cmd)[bytesRead - 1] == '\n')
+    {
+        (*cmd)[bytesRead - 1] = '\0';
+    }
+    return bytesRead;
 }
 
 int runBatchMode(char *filename)
@@ -337,16 +382,9 @@ int runBatchMode(char *filename)
         throwError();
     }
     char *cmd;
-    size_t buffersize = 1024;
-    ssize_t bytesRead;
-    cmd = (char *)malloc(buffersize * sizeof(char));
     bool cmdexec = false;
-    while ((bytesRead = getline(&cmd, &buffersize, fp)) != -1)
+    while (readInput(&cmd, fp) != -1)
     {
-        if (bytesRead > 0 && cmd[bytesRead - 1] == '\n')
-        {
-            cmd[bytesRead - 1] = '\0';
-        }
         trim(cmd);
         if (processcmd(cmd) == 1)
         {
@@ -364,19 +402,17 @@ int runBatchMode(char *filename)
 
 int runInteractiveMode()
 {
+    // cmdhistory *ch = NULL;
+    // initcmdhistory(&ch);
     char *cmd;
-    size_t buffersize = 1024;
-    ssize_t bytesRead;
-    cmd = (char *)malloc(buffersize * sizeof(char));
     printf("dash> ");
-    while ((bytesRead = getline(&cmd, &buffersize, stdin)) != -1)
+    while (1)
     {
-        if (bytesRead > 0 && cmd[bytesRead - 1] == '\n')
-        {
-            cmd[bytesRead - 1] = '\0';
-        }
+        // checkhistory(&ch);
+        readInput(&cmd, stdin);
         trim(cmd);
         processcmd(cmd);
+        // addToHistory(ch, cmd);
         printf("dash> ");
     }
     free(cmd);
