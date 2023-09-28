@@ -127,10 +127,11 @@ char *searchfilepath(const char *name)
         delimiter[0] = ':';
     }
     char **dirlist = strsplit(path, delimiter, &numdirs);
+    char *filepath = NULL;
     int i;
     for (i = 0; i < numdirs; i++)
     {
-        char *filepath = (char *)malloc((strlen(dirlist[i]) + 2 + strlen(name)) * sizeof(char));
+        filepath = (char *)malloc((strlen(dirlist[i]) + 2 + strlen(name)) * sizeof(char));
         strcat(filepath, dirlist[i]);
         strcat(filepath, "/");
         strcat(filepath, name);
