@@ -111,15 +111,11 @@ void freetokenlistmemory(char **tokenlist, int numtokens)
         int i;
         for (i = 0; i < numtokens; i++)
         {
-            printf("7-");
             free(tokenlist[i]);
             tokenlist[i] = NULL;
-            printf("7+");
         }
-        printf("1-");
         free(tokenlist);
         tokenlist = NULL;
-        printf("1+");
     }
 }
 
@@ -139,10 +135,8 @@ char *searchfilepath(const char *name)
         filepath = (char *)malloc((strlen(dirlist[i]) + 2 + strlen(name)) * sizeof(char));
         strcpy(filepath,"");
         strcat(filepath, dirlist[i]);
-        printf("%s\n",dirlist[i]);
         strcat(filepath, "/");
         strcat(filepath, name);
-        printf("%s\n",filepath);
         trim(filepath);
         if (access(filepath, F_OK) == 0)
         {
@@ -151,10 +145,8 @@ char *searchfilepath(const char *name)
         }
         else
         {
-            printf("2-");
             free(filepath);
             filepath = NULL;
-            printf("2+");
         }
     }
     freetokenlistmemory(dirlist, numdirs);
@@ -189,10 +181,8 @@ void truncateargs(int *argc, char **argv, int tailsize)
     int k = tailsize;
     while (back > -1 && k > -1)
     {
-        printf("3-");
         free(argv[back]);
         argv[back] = NULL;
-        printf("3+");
         k--;
         back--;
     }
@@ -330,10 +320,8 @@ int executecmd(char *cmd)
         {
             waitpid(pid, &status, 0);
         }
-        printf("4-");
         free(programpath);
         programpath = NULL;
-        printf("4+");
     }
     freetokenlistmemory(argv, argc);
     return 1;
@@ -417,10 +405,8 @@ int runBatchMode(char *filename)
     {
         throwError();
     }
-    printf("5-");
     free(cmd);
     cmd = NULL;
-    printf("5+");
     fclose(fp);
     return 0;
 }
@@ -440,10 +426,8 @@ int runInteractiveMode()
         // addToHistory(ch, cmd);
         printf("dash> ");
     }
-    printf("6-");
     free(cmd);
     cmd = NULL;
-    printf("6+");
     return 0;
 }
 
