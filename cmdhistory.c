@@ -88,7 +88,7 @@ int checkhistory(cmdhistory **ch) {
                 char input[2];
                 input[0] = key;
                 input[1] = '\0';
-                simulateInput(&key);
+                simulateInput(input);
             }
         }
         // Set back to fully buffered mode
