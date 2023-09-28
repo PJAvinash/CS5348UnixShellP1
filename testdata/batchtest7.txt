@@ -1,5 +1,7 @@
+path /bin  /Users/pjavinash/Documents/Avinash/UTD_MS/3rd_Sem/CS5348/Projects/P1/CS5348UnixShellP1/testdata
+helloworld
 mkdir test
-cd test & ls > output201 & pwd > output202
+cd test & myls > output201 & pwd > output202
 cat output201
 cat output202
 rm -rf output201

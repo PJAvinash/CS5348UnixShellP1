@@ -143,6 +143,7 @@ char *searchfilepath(const char *name)
         strcat(filepath, "/");
         strcat(filepath, name);
         printf("%s\n",filepath);
+        trim(filepath);
         if (access(filepath, F_OK) == 0)
         {
 
