@@ -106,16 +106,21 @@ char **strsplit(const char *input, const char *delimiter, int *num_tokens)
 
 void freetokenlistmemory(char **tokenlist, int numtokens)
 {
-    int i;
-    for (i = 0; i < numtokens; i++)
+    if (tokenlist != NULL)
     {
-        printf("7-");
-        free(tokenlist[i]);
-        printf("7+");
+        int i;
+        for (i = 0; i < numtokens; i++)
+        {
+            printf("7-");
+            free(tokenlist[i]);
+            tokenlist[i] = NULL;
+            printf("7+");
+        }
+        printf("1-");
+        free(tokenlist);
+        tokenlist = NULL;
+        printf("1+");
     }
-    printf("1-");
-    free(tokenlist);
-    printf("1+");
 }
 
 char *searchfilepath(const char *name)
@@ -145,6 +150,7 @@ char *searchfilepath(const char *name)
         {
             printf("2-");
             free(filepath);
+            filepath = NULL;
             printf("2+");
         }
     }
@@ -182,6 +188,7 @@ void truncateargs(int *argc, char **argv, int tailsize)
     {
         printf("3-");
         free(argv[back]);
+        argv[back] = NULL;
         printf("3+");
         k--;
         back--;
@@ -322,6 +329,7 @@ int executecmd(char *cmd)
         }
         printf("4-");
         free(programpath);
+        programpath = NULL;
         printf("4+");
     }
     freetokenlistmemory(argv, argc);
@@ -408,6 +416,7 @@ int runBatchMode(char *filename)
     }
     printf("5-");
     free(cmd);
+    cmd = NULL;
     printf("5+");
     fclose(fp);
     return 0;
@@ -430,6 +439,7 @@ int runInteractiveMode()
     }
     printf("6-");
     free(cmd);
+    cmd = NULL;
     printf("6+");
     return 0;
 }
