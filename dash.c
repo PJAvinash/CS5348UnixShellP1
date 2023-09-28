@@ -137,7 +137,7 @@ char *searchfilepath(const char *name)
     for (i = 0; i < numdirs; i++)
     {
         filepath = (char *)malloc((strlen(dirlist[i]) + 2 + strlen(name)) * sizeof(char));
-    
+        strcpy(filepath,"");
         strcat(filepath, dirlist[i]);
         printf("%s\n",dirlist[i]);
         strcat(filepath, "/");
@@ -146,7 +146,6 @@ char *searchfilepath(const char *name)
         trim(filepath);
         if (access(filepath, F_OK) == 0)
         {
-
             freetokenlistmemory(dirlist, numdirs);
             return filepath;
         }
