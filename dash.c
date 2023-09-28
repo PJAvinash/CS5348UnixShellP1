@@ -137,9 +137,12 @@ char *searchfilepath(const char *name)
     for (i = 0; i < numdirs; i++)
     {
         filepath = (char *)malloc((strlen(dirlist[i]) + 2 + strlen(name)) * sizeof(char));
+    
         strcat(filepath, dirlist[i]);
+        printf("%s\n",dirlist[i]);
         strcat(filepath, "/");
         strcat(filepath, name);
+        printf("%s\n",filepath);
         if (access(filepath, F_OK) == 0)
         {
 
