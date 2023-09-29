@@ -6,7 +6,6 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <sys/wait.h>
-#include "cmdhistory.c"
 
 char path[1024] = "/bin";
 
