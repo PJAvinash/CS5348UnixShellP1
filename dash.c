@@ -10,6 +10,9 @@
 
 char path[1024] = "/bin";
 
+/*
+** function to print a generic error and exit the program for dash
+*/
 void throwError()
 {
     char error_message[30] = "An error has occured\n";
@@ -17,6 +20,9 @@ void throwError()
     exit(1);
 }
 
+/*
+** function to count occurances of a target char in the given string
+*/
 int countChar(const char *cmd, const char target)
 {
     int cmdlen = strlen(cmd);
@@ -32,6 +38,10 @@ int countChar(const char *cmd, const char target)
     return count;
 }
 
+/*
+** Function to calculate number of tokens in a given string separated by a delimiter
+** used for estimating the size for malloc
+*/
 int strsplitsize(const char *input, const char delimiter)
 {
     if (input == NULL || strcmp(input, "") == 0)
@@ -51,7 +61,9 @@ int strsplitsize(const char *input, const char delimiter)
     return output;
 }
 
-// needs testing
+/*
+** function to remove leading and trailing spaces from a string. modifies the existing string.
+*/
 void trim(char *inputstr)
 {
     if (inputstr == NULL)
@@ -82,7 +94,7 @@ void trim(char *inputstr)
 }
 
 /*
-**returns array of tokens, updates num_tokens to number of tokens in the array. last token in the array is NULL
+**function to return array of tokens, updates num_tokens to number of tokens in the array. last token in the array is NULL
 **allocates memory on heap. caller is responsible for freeing the memory after usage.
 */
 char **strsplit(const char *input, const char *delimiter, int *num_tokens)
@@ -103,7 +115,10 @@ char **strsplit(const char *input, const char *delimiter, int *num_tokens)
     (*num_tokens) = i;
     return splitarray;
 }
-
+/*
+** function to free the memory allocated for an array of tokens
+** should be used for 'strsplit' output
+*/
 void freetokenlistmemory(char **tokenlist, int numtokens)
 {
     if (tokenlist != NULL)
@@ -118,7 +133,9 @@ void freetokenlistmemory(char **tokenlist, int numtokens)
         tokenlist = NULL;
     }
 }
-
+/*
+** function to search for the full program path for a given cmd in 'PATH'.
+*/
 char *searchfilepath(const char *name)
 {
     int numdirs = 0;
@@ -153,6 +170,9 @@ char *searchfilepath(const char *name)
     return NULL;
 }
 
+/*
+** function to validate and process output redirection in a command
+*/
 void validateredirectioncmd(char *cmd)
 {
     int cmdlen = strlen(cmd);
@@ -174,7 +194,10 @@ void validateredirectioncmd(char *cmd)
         }
     }
 }
-
+/*
+** function to truncate args in an array of tokens
+** reduces args by tailsize.
+*/
 void truncateargs(int *argc, char **argv, int tailsize)
 {
     int back = (*argc);
@@ -190,6 +213,9 @@ void truncateargs(int *argc, char **argv, int tailsize)
     (*argc) = back;
 }
 
+/*
+** function to redirect output to a specific file
+*/
 void outputredirection(const char *filepath)
 {
     int fd = open(filepath, O_CREAT | O_WRONLY | O_TRUNC, 0777);
@@ -202,6 +228,9 @@ void outputredirection(const char *filepath)
     close(fd);
 }
 
+/*
+** function to concatenate list of tokens with a specified delimiter
+*/
 char *strconcat(int start, int end, char **argv, const char delimiter)
 {
     int outputlen = 0;
@@ -240,6 +269,10 @@ char *strconcat(int start, int end, char **argv, const char delimiter)
     return output;
 }
 
+/*
+** function to execute a give cmd. 
+** doesnt expect & symbols in cmd, created a child proc for cmds otherthan built-in cmds.
+*/
 int executecmd(char *cmd)
 {
     trim(cmd);
@@ -327,6 +360,9 @@ int executecmd(char *cmd)
     return 1;
 }
 
+/*
+** function to validate syntax for parallel cmd execution
+*/
 void validateparallelcmd(const char *cmd)
 {
     if (countChar(cmd, '&') > 0)
@@ -348,6 +384,9 @@ void validateparallelcmd(const char *cmd)
     }
 }
 
+/*
+** function to execute a line of cmds
+*/
 int processcmd(const char *cmd)
 {
     int cmdexecuted = 0;
@@ -366,6 +405,10 @@ int processcmd(const char *cmd)
     return cmdexecuted;
 }
 
+/*
+** function to read input from a file or stdin
+** returns -1 on failure
+*/
 int readInput(char **cmd, FILE *fp)
 {
     size_t buffersize = 1024;
@@ -384,6 +427,9 @@ int readInput(char **cmd, FILE *fp)
     return bytesRead;
 }
 
+/*
+** function to run the shell in batch mode ( reading commands from a file )
+*/
 int runBatchMode(char *filename)
 {
     FILE *fp = fopen(filename, "r");
@@ -411,26 +457,27 @@ int runBatchMode(char *filename)
     return 0;
 }
 
+/*
+** function to run the shell in interactive mode. reads the input from stdin
+*/
 int runInteractiveMode()
 {
-    // cmdhistory *ch = NULL;
-    // initcmdhistory(&ch);
     char *cmd;
     printf("dash> ");
     while (1)
     {
-        // checkhistory(&ch);
         readInput(&cmd, stdin);
         trim(cmd);
         processcmd(cmd);
-        // addToHistory(ch, cmd);
         printf("dash> ");
     }
     free(cmd);
     cmd = NULL;
     return 0;
 }
-
+/*
+** main function to handle commandline args and run the shell.
+*/
 int main(int argc, char *argv[])
 {
     if (argc == 1)
